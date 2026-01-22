@@ -14,17 +14,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Preparar el documento para indexar
-    // Limitar el contenido a un tamaño manejable
-    const maxContentLength = 5000
-    const truncatedContent = content.substring(0, maxContentLength)
+    // Limitar el contenido a un tamaño manejable para el almacenamiento completo
+    const maxFullContentLength = 50000 // Aumentado significativamente
+    const fullContent = content.substring(0, maxFullContentLength)
     
-    // Crear texto buscable
-    const searchableText = `namespace:${namespace} documento:${filename} ${truncatedContent}`.substring(0, 1000)
+    // Crear texto buscable - DEBE contener suficiente contenido para búsqueda semántica
+    // Upstash necesita más texto para hacer búsquedas efectivas
+    const maxSearchableLength = 8000 // Mucho más texto para búsqueda semántica
+    const searchableText = `${filename} ${fullContent}`.substring(0, maxSearchableLength)
 
     const document = {
       id: doc_id,
       content: {
-        text: searchableText,
+        text: searchableText, // Texto para búsqueda semántica - AUMENTADO
         url: `document://${filename}`,
         title: filename
       },
@@ -35,8 +37,8 @@ export async function POST(request: NextRequest) {
         sourceURL: `document://${filename}`,
         crawlDate: new Date().toISOString(),
         pageTitle: filename,
-        description: `Documento: ${filename}`,
-        fullContent: truncatedContent,
+        description: `Documento subido: ${filename}`,
+        fullContent: fullContent, // Contenido completo para el contexto - AUMENTADO
         isUploadedDocument: true
       }
     }
